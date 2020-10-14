@@ -1,0 +1,34 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=4
+#SBATCH --time=0-24:00:00
+#SBATCH --mem=20240
+# Load required modules
+
+module load HISAT2/2.1.0-intel-2016.u3
+module load SAMtools/1.9-intel-2018.u4
+
+
+cd /scratch/punim1214/shared/john/tissue_samples
+
+f1=(
+SRR9889989_1.fastq.gz
+…
+)
+
+f2=(
+SRR9889989_2.fastq.gz
+…
+)
+
+o1=${f1[$SLURM_ARRAY_TASK_ID]}
+o2=${f2[$SLURM_ARRAY_TASK_ID]}
+o=${o1%%_1.fastq.gz}
+
+hisat2 -x /scratch/punim1214/shared/genome.files/Barley_Morex_V2_pseudomolecules --min-intronlen 20 --max-intronlen 10000 --dta -p 4 -1 $o1 -2 $o2 > ${o}.hisat.sam
+
+samtools view -b ${o}.hisat.sam > ${o}.hisat.bam
+
+samtools sort ${o}.hisat.bam -o ${o}.hisat.sorted.bam
+
+samtools index -c ${o}.hisat.sorted.bam
