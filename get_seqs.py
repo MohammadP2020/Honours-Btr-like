@@ -13,3 +13,4 @@ for seq in SeqIO.parse(sys.argv[2], "fasta"):
     if(g in s_d):
         sys.stdout.write(seq.format("fasta"))
         sys.stdout.flush()
+
