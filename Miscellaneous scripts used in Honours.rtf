@@ -1,0 +1,95 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2511
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\csgray\c0;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Downloading New data into Spartan (find accession codes)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f1\fs22 \cf2 \CocoaLigature0 \
+#module load SRA-Toolkit/2.9.2-centos_linux64 \
+\
+for line in $(cat sample.accessions)\
+do\
+    echo $line\
+    prefetch -O /scratch/punim1214/shared/Arthur $\{line\}\
+    fastq-dump --split-files /scratch/punim1214/shared/Arthur/$\{line\}.sra\
+done\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\tx18567\pardirnatural\partightenfactor0
+NOTE* NEED FILE CALLED sample.accessions\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+=================================================================================\
+Sending program to the Compute nodes\
+\
+Sbatch \'97-array=0-XX YYYY.slm\
+============================================================================\
+\
+Gzipping\
+\
+#!/bin/bash\
+#SBATCH --nodes=1\
+#SBATCH --ntasks=1\
+#SBATCH --time=0-24:00:00\
+#SBATCH --mem=20240\
+# Load required modules\
+\
+cd /scratch/punim1214/shared/Arthur/ \
+\
+f=(\
+XXXXXXXXXXXXXXX.fastq\
+)\
+\
+o=$\{f[$SLURM_ARRAY_TASK_ID]\}\
+\
+gzip $\{o\}\
+\
+===================================\
+Collecting alignment rate (mapping summary)\
+Grep \'93overall alignment rate\'94 slurm*.out > mapping_summary FIRST TIME\
+Grep \'93overall alignment rate\'94 slurm*.out > msum_1\
+Paste mapping_summary msum_1 > mapping_summary\
+====================================\
+Calculating TPM \'97 with file\
+\
+Usage: ./TPMCalculator\
+\
+./TPMCalculator options:\
+\
+-v    Print info\
+-h    Display this usage information.\
+-g    GTF file\
+-d    Directory with the BAM files\
+-b    BAM file\
+-k    Gene key to use from GTF file. Default: gene_id\
+-t    Transcript key to use from GTF file. Default: transcript_id\
+-c    Smaller size allowed for an intron created for genes. Default: 16. We recommend to use the reads length\
+-p    Use only properly paired reads. Default: No. Recommended for paired-end reads.\
+-q    Minimum MAPQ value to filter out reads. Default: 0. This value depends on the aligner MAPQ value.\
+-o    Minimum overlap between a reads and a feature. Default: 8.\
+-e    Extended output. This will include transcript level TPM values. Default: No.\
+-a    Print out all features with read counts equal to zero. Default: No.\
+\
+**************************************************************\
+\
+Sourcing .gtf and gff3 files\
+\
+wget ftp://ftp.ensemblegenomes.org/pub etc\
+\
+=================================================================================\
+Compiling the output files\
+\
+\
+\
+Paste sXXX.out.tpm sXXX.out.tpm sXXX.out.tpm | cut -f (1),2,4,6 > final.tpm     ONLY IF FIRST CREATION OF LIBRARY OF TPMS\
+\
+Alternate adding \
+Paste final.tpm sXXX.out.tpm | cut -f X(gene ID column of sXXX) > final.tpm        FOR ADDITIONS USE\
+=============================================\
+Downloading files locally\
+\
+XXX$ scp across2@spartan.hpc.unimelb.edu.au:/scratch/punim1214/shared . \
+\
+}
